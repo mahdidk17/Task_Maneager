@@ -1,11 +1,16 @@
 import tkinter as tk
 from tkinter import font
+import json
+import os
 
 class taskmaneagerApp:
     def __init__(self, root):
         self.root =root
         self.root.title("task_maneager")
         self.root.geometry("600x400")
+        
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        FILE_PATH = os.path.join(BASE_DIR, "tasks.json")
         
         self.tasks = []
         self.ACTIVE_COLOR = "#0078D7"  
@@ -17,18 +22,45 @@ class taskmaneagerApp:
         self.normal_font = font.Font(family="Helvetica", size=12)
         self.strike_font = font.Font(family="Helvetica", size=12, overstrike=True)
         self.root.config(bg=self.BG_COLOR)
+        
         self.tasks_db = {
-    "شنبه": [], "یکشنبه": [], "دوشنبه": [], "سه‌شنبه": [],
-    "چهارشنبه": [], "پنج‌شنبه": [], "جمعه": []
-}       
+            "شنبه": [], "یکشنبه": [], "دوشنبه": [], "سه‌شنبه": [],
+            "چهارشنبه": [], "پنج‌شنبه": [], "جمعه": []
+            }       
+        self.load_tasks()
         self.current_day = "شنبه"
-
         self.setup_ui()
     def switch_day(self,day):
         self.current_day
         self.current_day = day
         self.show_tasks()
         self.update_button_colors()
+    def init_default_tasks(self):
+        """ساختار پیش‌فرض تسک‌ها برای روزهای هفته"""
+        self.tasks_db = {
+            "شنبه": [], "یکشنبه": [], "دوشنبه": [], "سه‌شنبه": [],
+            "چهارشنبه": [], "پنج‌شنبه": [], "جمعه": []
+        }
+    def load_tasks(self):
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks.json")
+        if os.path.exists(file_path):
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    self.tasks_db = json.load(f)
+            except json.JSONDecodeError:
+                print("فایل خراب است یا اجرا نمیشود ")
+                self.init_default_tasks()
+        else:
+            self.init_default_tasks()
+    
+    def save_tasks(self):
+        print("در حال ذخیره سازی...") # این را اضافه کن
+        # استفاده از مسیر مطلق برای اطمینان از محل فایل
+        file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks.json")
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(self.tasks_db, f, indent=4, ensure_ascii=False)
+        print("ذخیره شد!")
+            
     
     def update_button_colors(self):
         for btn in self.days_frame.winfo_children():
@@ -73,12 +105,14 @@ class taskmaneagerApp:
             new_task_item = {"text": task_text, "done": False}
             self.tasks_db[self.current_day].append(new_task_item) # اضافه کردن به لیست روز فعلی
             self.entry.delete(0, tk.END)
+            self.save_tasks()
             self.show_tasks()
     
     def remove_task(self, task_item):
         # حذف از لیستِ آن روز
         self.tasks_db[self.current_day].remove(task_item)
         # فراخوانی مجدد برای رفرش کردن نمایش
+        self.save_tasks()
         self.show_tasks()
 
     
@@ -92,6 +126,8 @@ class taskmaneagerApp:
         else: # تیک برداشته شد
             widget.config(fg="white", font=self.normal_font) 
             print(f"تسک '{task_item['text']}' دوباره فعال شد.")
+        self.save_tasks()
+    
     def show_tasks(self):
     # پاک کردن نمایش قبلی (فقط تسک‌ها)
         for widget in self.tasks_frame.winfo_children():
@@ -99,7 +135,8 @@ class taskmaneagerApp:
     
     # نمایش لیست جدید بر اساس وضعیت ذخیره شده
     # ما باید به هر دیکشنری تسک دسترسی داشته باشیم
-        for task_item in self.tasks_db[self.current_day]: 
+        current_tasks = self.tasks_db.get(self.current_day, []) 
+        for task_item in current_tasks:
             card = tk.Frame(self.tasks_frame, bg=self.card_color, bd=0)
             card.pack(fill="x", pady=5, padx=5)
         
