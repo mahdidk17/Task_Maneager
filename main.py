@@ -15,7 +15,7 @@ class taskmaneagerApp:
         self.tasks = []
         self.themes = {
             "dark": {
-                "BG_COLOR": "#3D3D3D",
+                "BG_COLOR": "#4E4E4E",
                 "FG_COLOR": "#E0E0E0",
                 "ENTRY_BG": "#424242",
                 "card_color": "#4B4B4B",
@@ -31,9 +31,49 @@ class taskmaneagerApp:
                 "ACTIVE_COLOR": "#0D6EFD",
                 "INACTIVE_COLOR": "#CED4DA",
                 "BTN_FG": "#FFFFFF"       
+            },
+            "ocean": {
+                "BG_COLOR": "#0F172A",
+                "FG_COLOR": "#F1F5F9",
+                "ENTRY_BG": "#1E293B",
+                "card_color": "#334155",
+                "ACTIVE_COLOR": "#38BDF8",
+                "INACTIVE_COLOR": "#64748B",
+                "BTN_FG": "#0F172A"
+            },
+            "forest": {
+                "BG_COLOR": "#064E3B",
+                "FG_COLOR": "#ECFDF5",
+                "ENTRY_BG": "#3C6138",
+                "card_color": "#3F6637",
+                "ACTIVE_COLOR": "#709954",
+                "INACTIVE_COLOR": "#3E5541",
+                "BTN_FG": "#FFFFFF"
+            },
+            "red": {
+                "BG_COLOR": "#C73C3C",          # کرم بسیار ملایم و روشن برای پس‌زمینه اصلی
+                "FG_COLOR": "#ffffff",          # خاکستری-بنفش ملایم و خوانا برای متن‌ها
+                "ENTRY_BG": "#ff8989",          # پس‌زمینه ملایم برای کادرهای ورودی
+                "card_color": "#b14f4f",        # رنگ کارت‌های تسک (کرم/هلویی ملایم)
+                "ACTIVE_COLOR": "#be0000",      # آبی پاستیلی روشن برای دکمه/روز فعال
+                "INACTIVE_COLOR": "#ff6e6e",    # هلویی پاستیلی برای دکمه‌های غیرفعال
+                "BTN_FG": "#000000"             # رنگ متن روی دکمه‌ها
+            },
+            "purple": {
+                "BG_COLOR": "#1e1b2e",          # بنفش بسیار تیره و مدرن برای پس‌زمینه اصلی
+                "FG_COLOR": "#f3e8ff",          # بنفش خیلی روشن و گچی برای متن‌ها
+                "ENTRY_BG": "#2d2640",          # بنفش تیره ملایم برای کادرهای ورودی
+                "card_color": "#2a223f",        # رنگ کارت‌های تسک (بنفش شیک و دارک)
+                "ACTIVE_COLOR": "#7c3aed",      # بنفش سلطنتی و پررنگ برای دکمه/روز فعال
+                "INACTIVE_COLOR": "#3b2a59",    # بنفش تیره برای دکمه‌های غیرفعال
+                "BTN_FG": "#ffffff"             # رنگ متن سفید برای کنتراست عالی
             }
+
+
+
+            
         }
-        
+        self.current_theme_name = "dark"
         self.current_theme = "dark"
         self.normal_font = font.Font(family="Helvetica", size=12)
         self.strike_font = font.Font(family="Helvetica", size=12, overstrike=True)
@@ -46,64 +86,79 @@ class taskmaneagerApp:
         self.load_tasks()
         self.current_day = "شنبه"
         self.setup_ui()
-        
+
     def switch_day(self,day):
         self.current_day
         self.current_day = day
         self.show_tasks()
         self.update_button_colors()
         
-    def apply_theme(self):
-        # گرفتن رنگ‌های تمِ فعلی
-        theme = self.themes[self.current_theme]
-        
-        # آپدیت کردن رنگ پنجره اصلی
-        self.root.config(bg=theme["BG_COLOR"])
-        
-        # آپدیت کردن فریم‌ها
-        self.days_frame.config(bg=theme["BG_COLOR"])
-        self.main_frame.config(bg=theme["BG_COLOR"])
-        self.tasks_frame.config(bg=theme["BG_COLOR"])
-        
-        # آپدیت کردن اینپوت (هم پس‌زمینه و هم رنگ متن)
-        self.entry.config(bg=theme["ENTRY_BG"], fg=theme["FG_COLOR"], insertbackground=theme["FG_COLOR"])
-        
-        # آپدیت کردن دکمه تغییر تم
-        self.theme_btn.config(bg=theme["ACTIVE_COLOR"], fg=theme["BTN_FG"])
-        
-        # رفرش کردن دکمه‌های روزها و تسک‌ها تا با رنگ‌های جدید رندر شوند
-        self.update_button_colors()
-        self.show_tasks()
-    def apply_theme(self):
-        # گرفتن رنگ‌های تمِ فعلی
-        theme = self.themes[self.current_theme]
-        
-        # آپدیت کردن رنگ پنجره اصلی
-        self.root.config(bg=theme["BG_COLOR"])
-        
-        # آپدیت کردن فریم‌ها
-        self.days_frame.config(bg=theme["BG_COLOR"])
-        self.main_frame.config(bg=theme["BG_COLOR"])
-        self.tasks_frame.config(bg=theme["BG_COLOR"])
-        
-        # آپدیت کردن اینپوت (هم پس‌زمینه و هم رنگ متن)
-        self.entry.config(bg=theme["ENTRY_BG"], fg=theme["FG_COLOR"], insertbackground=theme["FG_COLOR"])
-        
-        # آپدیت کردن دکمه تغییر تم
-        self.theme_btn.config(bg=theme["ACTIVE_COLOR"], fg=theme["BTN_FG"])
-        
-        # رفرش کردن دکمه‌های روزها و تسک‌ها تا با رنگ‌های جدید رندر شوند
-        self.update_button_colors()
-        self.show_tasks()
-
-    def toggle_theme(self):
-        if self.current_theme == "dark":
-            self.current_theme = "light"
+    def toggle_theme_menu(self):
+        # بررسی می‌کنیم آیا فریم منوی تم قبلاً ساخته شده و باز است یا نه
+        if hasattr(self, 'theme_menu_frame') and self.theme_menu_frame.winfo_exists():
+            # اگر باز بود، آن را حذف (بسته) می‌کنیم
+            self.theme_menu_frame.destroy()
         else:
-            self.current_theme = "dark"
+            # گرفتن رنگ تم فعلی
+            theme = self.themes[self.current_theme]
             
-        self.apply_theme()
+            # پیدا کردن فریمِ والدِ دکمه تم (همان جایی که دکمه اصلی قرار دارد)
+            parent_frame = self.theme_btn.master 
+            
+            # ایجاد فریم منو درون همان والد
+            self.theme_menu_frame = tk.Frame(parent_frame, bg=theme["BG_COLOR"])
+            
+            # قرار دادن فریم منو دقیقا در کنار دکمه اصلی (مثلاً سمت چپ یا راستِ دکمه اصلی)
+            # نکته: بسته به اینکه دکمه اصلی چطور pack شده، این فریم کنارش می‌نشیند
+            self.theme_menu_frame.pack(side=tk.LEFT, padx=5)
+            
+            # به ازای هر تم، یک دکمه می‌سازیم
+                        # به ازای هر تم، یک دکمه می‌سازیم
+            for theme_key in self.themes.keys():
+                btn = tk.Button(
+                    self.theme_menu_frame,
+                    text=theme_key.capitalize(),
+                    command=lambda t=theme_key: self.select_theme(t),
+                    # اینجا داریم رنگ دکمه را دقیقاً از دیکشنری همان تم می‌گیریم:
+                    bg=self.themes[theme_key]["card_color"], 
+                    fg=self.themes[theme_key]["FG_COLOR"],
+                    relief="flat",
+                    padx=6,
+                    pady=2
+                )
+                btn.pack(side=tk.LEFT, padx=2)
 
+
+
+
+    def select_theme(self, theme_name):
+        # ۱. تنظیم تم انتخابی کاربر
+        self.current_theme = theme_name
+        
+        # ۲. اعمال رنگ‌ها به کل برنامه
+        self.apply_theme()
+        
+        # ۳. بستن منوی انتخاب تم پس از انتخاب
+        if hasattr(self, 'theme_menu_frame') and self.theme_menu_frame.winfo_exists():
+            self.theme_menu_frame.destroy()
+
+
+
+    def apply_theme(self):
+        theme = self.themes[self.current_theme]
+        
+        self.root.config(bg=theme["BG_COLOR"])
+        
+        self.days_frame.config(bg=theme["BG_COLOR"])
+        self.main_frame.config(bg=theme["BG_COLOR"])
+        self.tasks_frame.config(bg=theme["BG_COLOR"])
+        self.entry.config(bg=theme["ENTRY_BG"], fg=theme["FG_COLOR"], insertbackground=theme["FG_COLOR"])
+        
+        self.theme_btn.config(command=self.toggle_theme_menu)
+        self.update_button_colors()
+        self.show_tasks()
+
+        
     
     def init_default_tasks(self):
         """ساختار پیش‌فرض تسک‌ها برای روزهای هفته"""
@@ -125,8 +180,7 @@ class taskmaneagerApp:
             self.init_default_tasks()
     
     def save_tasks(self):
-        print("در حال ذخیره سازی...") # این را اضافه کن
-        # استفاده از مسیر مطلق برای اطمینان از محل فایل
+        print("در حال ذخیره سازی...")
         file_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "tasks.json")
         with open(file_path, "w", encoding="utf-8") as f:
             json.dump(self.tasks_db, f, indent=4, ensure_ascii=False)
@@ -135,13 +189,17 @@ class taskmaneagerApp:
     
     def update_button_colors(self):
         for btn in self.days_frame.winfo_children():
-            if btn.cget("text") == self.current_day:
-                btn.config(bg=self.themes[self.current_theme]["ACTIVE_COLOR"])
-            else:
-                btn.config(bg=self.themes[self.current_theme]["INACTIVE_COLOR"])
+            if isinstance(btn, tk.Button):
+                try:
+                    if btn.cget("text") == self.current_day:
+                        btn.config(bg=self.themes[self.current_theme]["ACTIVE_COLOR"])
+                    else:
+                        btn.config(bg=self.themes[self.current_theme]["INACTIVE_COLOR"])
+                except tk.TclError:
+                    continue
+
     
     def setup_ui(self):
-        # ۱. ساخت نوار روزها (دقت کن همه با self. تعریف می‌شوند)
         self.days_frame = tk.Frame(self.root, bg=self.themes[self.current_theme]["BG_COLOR"])
         self.days_frame.pack(side="right", fill="y", padx=10, pady=20)
 
@@ -151,9 +209,8 @@ class taskmaneagerApp:
                             bg="#444", fg="white", width=12)
             btn.pack(pady=2)
         
-                # این دکمه را می‌توانی در متد setup_ui هر جایی که دوست داری قرار دهی
         self.theme_btn = tk.Button(self.days_frame, text="تغییر تم 🌗", 
-                                   command=self.toggle_theme,
+                                   command=self.toggle_theme_menu,
                                    bg="#555", fg="white", width=12)
         self.theme_btn.pack(pady=10, side="bottom") # پایین فریم روزها قرار می‌گیرد
 
