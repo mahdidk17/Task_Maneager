@@ -5,12 +5,12 @@ import os
 
 class taskmaneagerApp:
     def __init__(self, root):
-        self.root =root
+        self.root = root
         self.root.title("task_maneager")
         self.root.geometry("600x400")
         
         BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        FILE_PATH = os.path.join(BASE_DIR, "tasks.json")
+        self.file_path = os.path.join(BASE_DIR, "tasks.json")
         
         self.tasks = []
         self.themes = {
@@ -51,28 +51,25 @@ class taskmaneagerApp:
                 "BTN_FG": "#FFFFFF"
             },
             "red": {
-                "BG_COLOR": "#C73C3C",          # کرم بسیار ملایم و روشن برای پس‌زمینه اصلی
-                "FG_COLOR": "#ffffff",          # خاکستری-بنفش ملایم و خوانا برای متن‌ها
-                "ENTRY_BG": "#ff8989",          # پس‌زمینه ملایم برای کادرهای ورودی
-                "card_color": "#b14f4f",        # رنگ کارت‌های تسک (کرم/هلویی ملایم)
-                "ACTIVE_COLOR": "#be0000",      # آبی پاستیلی روشن برای دکمه/روز فعال
-                "INACTIVE_COLOR": "#ff6e6e",    # هلویی پاستیلی برای دکمه‌های غیرفعال
-                "BTN_FG": "#000000"             # رنگ متن روی دکمه‌ها
+                "BG_COLOR": "#C73C3C",          
+                "FG_COLOR": "#ffffff",          
+                "ENTRY_BG": "#ff8989",          
+                "card_color": "#b14f4f",        
+                "ACTIVE_COLOR": "#be0000",      
+                "INACTIVE_COLOR": "#ff6e6e",    
+                "BTN_FG": "#000000"             
             },
             "purple": {
-                "BG_COLOR": "#1e1b2e",          # بنفش بسیار تیره و مدرن برای پس‌زمینه اصلی
-                "FG_COLOR": "#f3e8ff",          # بنفش خیلی روشن و گچی برای متن‌ها
-                "ENTRY_BG": "#2d2640",          # بنفش تیره ملایم برای کادرهای ورودی
-                "card_color": "#2a223f",        # رنگ کارت‌های تسک (بنفش شیک و دارک)
-                "ACTIVE_COLOR": "#7c3aed",      # بنفش سلطنتی و پررنگ برای دکمه/روز فعال
-                "INACTIVE_COLOR": "#3b2a59",    # بنفش تیره برای دکمه‌های غیرفعال
-                "BTN_FG": "#ffffff"             # رنگ متن سفید برای کنتراست عالی
+                "BG_COLOR": "#1e1b2e",          
+                "FG_COLOR": "#f3e8ff",          
+                "ENTRY_BG": "#2d2640",          
+                "card_color": "#2a223f",        
+                "ACTIVE_COLOR": "#7c3aed",      
+                "INACTIVE_COLOR": "#3b2a59",    
+                "BTN_FG": "#ffffff"             
             }
-
-
-
-            
         }
+        
         self.current_theme_name = "dark"
         self.current_theme = "dark"
         self.normal_font = font.Font(family="Helvetica", size=12)
@@ -82,11 +79,66 @@ class taskmaneagerApp:
         self.tasks_db = {
             "شنبه": [], "یکشنبه": [], "دوشنبه": [], "سه‌شنبه": [],
             "چهارشنبه": [], "پنج‌شنبه": [], "جمعه": []
-            }       
-        self.load_tasks()
+        }
         self.current_day = "شنبه"
+
+        
+        self.load_tasks()
+
         self.setup_ui()
 
+
+    def draw_progress_circle(self, completed, total):
+        self.progress_canvas.delete("all")
+        
+        # رنگ‌های پس‌زمینه تم فعلی
+        current_theme_colors = self.themes[self.current_theme]
+        bg_color = current_theme_colors["BG_COLOR"]
+        active_color = current_theme_colors["ACTIVE_COLOR"]
+        inactive_color = current_theme_colors["INACTIVE_COLOR"]
+        fg_color = current_theme_colors["FG_COLOR"]
+        
+        # تنظیم رنگ پس‌زمینه خود بوم
+        self.progress_canvas.config(bg=bg_color)
+        
+        # مختصات دایره روی بوم
+        x1, y1, x2, y2 = 5, 5, 55, 55
+        
+        # ۱. کشیدن دایره کاملِ کم‌رنگ به عنوان پس‌زمینه پیشرفت
+        self.progress_canvas.create_oval(
+            x1, y1, x2, y2, 
+            outline=inactive_color, 
+            width=6
+        )
+        
+        # اگر کل تسک‌ها صفر بود، درصد صفر است
+        if total == 0:
+            percent = 0
+            extent = 0
+        else:
+            percent = int((completed / total) * 100)
+            extent = -360 * (completed / total) # منفی برای چرخش ساعت‌گرد
+            
+        # ۲. کشیدن کمان پیشرفت (Arc) بر اساس درصد انجام شده
+        if total > 0:
+            self.progress_canvas.create_arc(
+                x1, y1, x2, y2, 
+                start=90, # شروع از بالای دایره
+                extent=extent, 
+                outline=active_color, 
+                width=6, 
+                style=tk.ARC
+            )
+            
+        # ۳. نوشتن درصد دقیق وسط دایره
+        self.progress_canvas.create_text(
+            30, 30, 
+            text=f"{percent}%", 
+            fill=fg_color, 
+            font=("Arial", 9, "bold")
+        )
+    
+    
     def switch_day(self,day):
         self.current_day
         self.current_day = day
@@ -94,32 +146,22 @@ class taskmaneagerApp:
         self.update_button_colors()
         
     def toggle_theme_menu(self):
-        # بررسی می‌کنیم آیا فریم منوی تم قبلاً ساخته شده و باز است یا نه
         if hasattr(self, 'theme_menu_frame') and self.theme_menu_frame.winfo_exists():
-            # اگر باز بود، آن را حذف (بسته) می‌کنیم
             self.theme_menu_frame.destroy()
         else:
-            # گرفتن رنگ تم فعلی
             theme = self.themes[self.current_theme]
             
-            # پیدا کردن فریمِ والدِ دکمه تم (همان جایی که دکمه اصلی قرار دارد)
             parent_frame = self.theme_btn.master 
             
-            # ایجاد فریم منو درون همان والد
             self.theme_menu_frame = tk.Frame(parent_frame, bg=theme["BG_COLOR"])
             
-            # قرار دادن فریم منو دقیقا در کنار دکمه اصلی (مثلاً سمت چپ یا راستِ دکمه اصلی)
-            # نکته: بسته به اینکه دکمه اصلی چطور pack شده، این فریم کنارش می‌نشیند
             self.theme_menu_frame.pack(side=tk.LEFT, padx=5)
             
-            # به ازای هر تم، یک دکمه می‌سازیم
-                        # به ازای هر تم، یک دکمه می‌سازیم
             for theme_key in self.themes.keys():
                 btn = tk.Button(
                     self.theme_menu_frame,
                     text=theme_key.capitalize(),
                     command=lambda t=theme_key: self.select_theme(t),
-                    # اینجا داریم رنگ دکمه را دقیقاً از دیکشنری همان تم می‌گیریم:
                     bg=self.themes[theme_key]["card_color"], 
                     fg=self.themes[theme_key]["FG_COLOR"],
                     relief="flat",
@@ -200,37 +242,61 @@ class taskmaneagerApp:
 
     
     def setup_ui(self):
+        # ۱. فریم دکمه‌های روزهای هفته (در سمت راست)
         self.days_frame = tk.Frame(self.root, bg=self.themes[self.current_theme]["BG_COLOR"])
         self.days_frame.pack(side="right", fill="y", padx=10, pady=20)
 
         for day in self.tasks_db.keys():
             btn = tk.Button(self.days_frame, text=day, 
-                            command=lambda d=day: self.switch_day(d), # باید self باشد
+                            command=lambda d=day: self.switch_day(d), 
                             bg="#444", fg="white", width=12)
             btn.pack(pady=2)
         
-        self.theme_btn = tk.Button(self.days_frame, text="تغییر تم 🌗", 
+        self.theme_btn = tk.Button(self.days_frame, text="تغییر تم", 
                                    command=self.toggle_theme_menu,
                                    bg="#555", fg="white", width=12)
-        self.theme_btn.pack(pady=10, side="bottom") # پایین فریم روزها قرار می‌گیرد
+        self.theme_btn.pack(pady=10, side="bottom")
 
-        
-        self.update_button_colors() # باید self باشد
+        self.update_button_colors()
 
-        # ۲. بخش اصلی
+        # ۲. فریم اصلی (در سمت چپ) برای محتوای تسک‌ها و ورودی
         self.main_frame = tk.Frame(self.root, bg=self.themes[self.current_theme]["BG_COLOR"])
         self.main_frame.pack(side="left", fill="both", expand=True, padx=20, pady=20)
 
-        # ۳. ورودی
+        # ۳. بخش بالایی (شامل عنوان روز و دایره پیشرفت) - این جا ساخته می‌شود تا همیشه وجود داشته باشد
+        self.top_task_frame = tk.Frame(self.main_frame, bg=self.themes[self.current_theme]["BG_COLOR"])
+        self.top_task_frame.pack(fill="x", pady=(0, 10))
+
+        self.day_title_label = tk.Label(
+            self.top_task_frame, 
+            text="", 
+            font=("Arial", 14, "bold"),
+            bg=self.themes[self.current_theme]["BG_COLOR"],
+            fg=self.themes[self.current_theme]["FG_COLOR"]
+        )
+        self.day_title_label.pack(side="left")
+
+        self.progress_canvas = tk.Canvas(
+            self.top_task_frame, 
+            width=60, 
+            height=60, 
+            highlightthickness=0,
+            bg=self.themes[self.current_theme]["BG_COLOR"]
+        )
+        self.progress_canvas.pack(side="right")
+
+        # ۴. فیلد ورودی تسک جدید
         self.entry = tk.Entry(self.main_frame, bg=self.themes[self.current_theme]["ENTRY_BG"], fg=self.themes[self.current_theme]["FG_COLOR"])
         self.entry.pack(fill="x", pady=(0, 20))
-        self.entry.bind('<Return>', self.add_task) # باید self باشد
+        self.entry.bind('<Return>', self.add_task)
 
-        # ۴. نگهدارنده تسک‌ها
+        # ۵. فریم نگهدارنده لیست تسک‌ها
         self.tasks_frame = tk.Frame(self.main_frame, bg=self.themes[self.current_theme]["BG_COLOR"])
         self.tasks_frame.pack(fill="both", expand=True)
 
+        # ۶. نمایش اولیه تسک‌ها و دایره پیشرفت
         self.show_tasks()
+
         
     
     def add_task(self,event=None):
@@ -271,6 +337,10 @@ class taskmaneagerApp:
         theme = self.themes[self.current_theme]
         current_tasks = self.tasks_db.get(self.current_day, []) 
         
+        # ۱. به‌روزرسانی متن عنوان روز در بالای لیست
+        if hasattr(self, 'day_title_label'):
+            self.day_title_label.config(text=f"برنامه‌های {self.current_day}")
+
         for task_item in current_tasks:
             card = tk.Frame(self.tasks_frame, bg=theme["card_color"], bd=0)
             card.pack(fill="x", pady=5, padx=5)
@@ -279,9 +349,9 @@ class taskmaneagerApp:
             
             # تعیین رنگ متن بر اساس تم و وضعیت انجام شدن
             if task_item["done"]:
-                current_color = "#888888" # خاکستری ملایم برای تسک‌های انجام شده
+                current_color = "#888888"
             else:
-                current_color = theme["FG_COLOR"] # رنگ متن اصلی از تم (سفید در دارک، مشکی در لایت)
+                current_color = theme["FG_COLOR"] 
                 
             current_font = self.strike_font if task_item["done"] else self.normal_font 
             
@@ -291,7 +361,7 @@ class taskmaneagerApp:
                 variable=var,
                 bg=theme["card_color"], 
                 activebackground=theme["card_color"],
-                selectcolor=theme["ENTRY_BG"], # رنگ پس‌زمینه باکس کوچک تیک
+                selectcolor=theme["ENTRY_BG"],
                 highlightthickness=0,
                 relief="flat",
                 fg=current_color,
@@ -312,6 +382,12 @@ class taskmaneagerApp:
                 command=lambda item=task_item: self.remove_task(item)
             )
             delete_btn.pack(side="right", padx=10)
+
+        # ۲. محاسبه و رسم دایره پیشرفت بیرون از حلقه (تا همیشه و حتی برای لیست‌های خالی هم اجرا شود)
+        total_tasks = len(current_tasks)
+        completed_tasks = sum(1 for task in current_tasks if task["done"])
+        self.draw_progress_circle(completed_tasks, total_tasks)
+
 
     
     
